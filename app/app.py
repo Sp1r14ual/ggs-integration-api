@@ -7,7 +7,9 @@ app = FastAPI()
 
 @app.post("/add_object_ks")
 def add_object_ks_endpoint(object_ks: ObjectKSModel):
-    return object_ks_add_util()
+    return object_ks_add_util(object_ks)
+    # print(dict(object_ks))
+    # return
 
 @app.put("/update_object_ks")
 def update_object_ks_endpoint():
