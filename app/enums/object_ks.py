@@ -1,53 +1,67 @@
-from enum import Enum
+from aenum import Enum
 
-class ClientType(Enum):
-    connection_launch_only = 480
-    gasification = 481
-    resigning_to_vdgo = 482
+class BaseEnum(Enum):
+    _init_ = 'value string'
 
-class State(Enum):
-    considered_delayed = 483
-    asocial = 484
-    gasificated = 485
-    not_gasificated = 486
-    considered_credit = 487
-    considered_social = 488
-    considered_standard = 489
-    declined_to_demolish = 490
-    house_burnt_down = 491
-    stub = 492
-    undefined = 493
+    def __str__(self):
+        return self.string
 
-class GasificationType(Enum):
-    asocial = 494
-    standard = 495
-    social = 496
-    credit = 497
-    additional_gasification = 498
+    @classmethod
+    def _missing_value_(cls, value):
+        for member in cls:
+            if member.string == value:
+                return member
 
-class District(Enum):
-    dzerjinskiy = 400
-    jeleznodorojniy = 401
-    zaeltsovskiy = 402
-    kalininskiy = 403
-    kirovskiy = 404
-    leninskiy = 405
-    novosibirskiy = 406
-    oktyabrskiy = 407
-    pervomayskiy = 408
-    sovetskiy = 409
-    centralniy = 410
+class ClientType(BaseEnum):
+    connection_launch_only = 480, "Подключение (только пуск)"
+    gasification = 481, "Газификация"
+    resigning_to_vdgo = 482, "Перезаключение ТО ВДГО"
 
-class Playground(Enum):
-    test = 1
-    avleda_m = 2
-    biatlon = 3
-    luch_97 = 4
-    zolotaya_gorka_2003 = 5
-    sibirskiye_prostori = 6
+class State(BaseEnum):
+    considered_delayed = 483, "предполагаемый отсроченный"
+    asocial = 484, "асоциальный"
+    gasificated = 485, "газифицирован"
+    not_gasificated = 486, "не газифицирован"
+    considered_credit = 487, "предполагаемый кредитный"
+    considered_social = 488, "предполагаемый социальный"
+    considered_standard = 489, "предполагаемый стандартный"
+    declined_to_demolish = 490, "отключен, под снос"
+    house_burnt_down = 491, "дом сгорел"
+    stub = 492, "заглушка"
+    undefined = 493, "не_определен"
+
+class GasificationType(BaseEnum):
+    asocial = 494, "Асоциальный"
+    standard = 495, "Стандартный"
+    social = 496, "Социальный"
+    credit = 497, "Кредитный"
+    additional_gasification = 498, "Догазификация"
+    additional_gasification_snt = 929, "Догазификация СНТ"
+    additional_gasification_soc = 930, "Догазификация СОЦ"
+
+class District(BaseEnum):
+    dzerjinskiy = 400, "Дзержинский"
+    jeleznodorojniy = 401, "Железнодорожный"
+    zaeltsovskiy = 402, "Заельцовский"
+    kalininskiy = 403, "Калининский"
+    kirovskiy = 404, "Кировский"
+    leninskiy = 405, "Ленинский"
+    novosibirskiy = 406, "Новосибирский"
+    oktyabrskiy = 407, "Октябрьский"
+    pervomayskiy = 408, "Первомайский"
+    sovetskiy = 409, "Советский"
+    centralniy = 410, "Центральный"
+
+class Playground(BaseEnum):
+    test = 1, "Тестовая"
+    avleda_m = 2, "Авледа-М"
+    biatlon = 3, "БИАТЛОН"
+    luch_97 = 4, "ЛУЧ-97"
+    zolotaya_gorka_2003 = 5, "ЗОЛОТАЯ ГОРКА 2003"
+    sibirskiye_prostori = 6, "СИБИРСКИЕ ПРОСТОРЫ"
 
 # Надо делать?
-class Contract(Enum):
+class Contract(BaseEnum):
     pass
 
 class ObjectKSFields(Enum):

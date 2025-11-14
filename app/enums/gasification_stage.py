@@ -1,39 +1,51 @@
-from enum import Enum
+from aenum import Enum
 
-class Grs2(Enum):
+class BaseEnum(Enum):
+    def __str__(self):
+        return self.string
+
+    @classmethod
+    def _missing_value_(cls, value):
+        for member in cls:
+            if member.string == value:
+                return member.value
+
+class Grs2(BaseEnum):
     not_chosen = 0
-    grs_2 = 931
-    grs_3 = 935
-    grs_4 = 936
-    grs_5 = 937
-    grs_6 = 938
-    grs_tolmachevo = 939
-    grs_verh_tula = 940
-    grs_vniimb = 941
-    grs_wastewater_cleaning = 942
-    grs_11 = 943
+    grs_2 = 931, "ГРС-2"
+    grs_3 = 935, "ГРС-3"
+    grs_4 = 936, "ГРС-4"
+    grs_5 = 937, "ГРС-5"
+    grs_6 = 938, "ГРС-6"
+    grs_tolmachevo = 939, "ГРС Толмачево"
+    grs_verh_tula = 940, "ГРС Верх-Тула"
+    grs_vniimb = 941, "ГРС ВНИИМБ"
+    grs_wastewater_cleaning = 942, "ГРС Очистные сооружения"
+    grs_11 = 943, "ГРС-11"
 
-class Event(Enum):
-    reconstruction_existent_grs = 562
-    insertion_on_applicat_territory = 557
-    reconstruction_gas_distribution_station = 558
-    reconstruction_grs = 559
-    reconstruction_grs_construction_gb = 560
-    reconstruction_and_construction_grs = 561
-    construction_grs = 563
-    tech_add_on_applicant_territory_borders = 564
-    installation_gas_reduction_node = 565
+    
 
-class Pad(Enum):
-    underground = 567
-    undefined = 566
-    aboveground = 568
+class Event(BaseEnum):
+    reconstruction_existent_grs = 562, "Реконструкция существующей ГРС"
+    insertion_on_applicat_territory = 557, "Врезка на участке заявителя (нулевая врезка)"
+    reconstruction_gas_distribution_station = 558, "Реконструкция газораспределительной станции (ГРС)"
+    reconstruction_grs = 559, "Реконструкция ГРС"
+    reconstruction_grs_construction_gb = 560, "Реконструкция ГРС, строительство ГВ"
+    reconstruction_and_construction_grs = 561, "Реконструкция и строительство ГРС"
+    construction_grs = 563, "Строительство ГРС"
+    tech_add_on_applicant_territory_borders = 564, "Тех. прис. на границе участка Заявителя"
+    installation_gas_reduction_node = 565, "Установка пункта редуцирования газа"
 
-class Material(Enum):
-    polyethylene = 570
-    metal = 569
+class Pad(BaseEnum):
+    underground = 567, "Подземный"
+    undefined = 566, "Не определен"
+    aboveground = 568, "Надземный"
 
-class GasificationStageFields(Enum):
+class Material(BaseEnum):
+    polyethylene = 570, "Полиэтилен"
+    metal = 569, "Металл"
+
+class GasificationStageFields(BaseEnum):
     agreed = "ufCrm30_1755258794624"
     remark1 = "ufCrm30_1752134986320"
     grs = "ufCrm30_1752135017"

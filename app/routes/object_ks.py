@@ -45,3 +45,4 @@ def delete_object_ks_endpoint(id: int):
         raise HTTPException(status_code=400, detail="Item does not exist")
     
     return res
+
