@@ -31,7 +31,7 @@ def build_payloads(house):
             # print(pydantic_schema_field_name)
             bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
             # print(bitrix_field_name)
-            object_ks_payload[bitrix_field_name] = bool(value)
+            object_ks_payload[bitrix_field_name] = "Y" if bool(value) else "N"
 
         elif key == "type_client":
             pydantic_schema_field_name = HouseToObjectKSFields[key].value
