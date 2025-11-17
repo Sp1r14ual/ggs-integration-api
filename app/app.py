@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse 
 from app.routes.gasification_stage import router as gasification_stage_router
 from app.routes.object_ks import router as object_ks_router
 from app.routes.sync_with_db import router as sync_with_db_router
