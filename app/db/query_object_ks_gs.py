@@ -11,10 +11,11 @@ from app.models.organization import Organization
 from app.models.grs import Grs
 from app.models.type_packing import TypePacking
 from app.models.type_pipe_material import TypePipeMaterial
+from app.models.type_spdg_action import TypeSPDGAction
 
 
 engine = create_engine(
-    'mssql+pyodbc://DESKTOP-8F7T81O\\SQLEXPRESS/ggs_stud?driver=SQL+Server+Native+Client+11.0', echo=True)
+    'mssql+pyodbc://DESKTOP-OE5G1EA\\SQLEXPRESS/ggs_stud?driver=SQL+Server+Native+Client+11.0', echo=True)
 
 def clean_result(result):
     result_dict = dict(result)
@@ -82,6 +83,7 @@ def query_house_by_id(id: int):
                 House.spdg_date_protocol,
                 House.spdg_number,
                 House.spdg_date,
+                TypeSPDGAction.name.label('type_spdg_action'),
                 House.gc_plan,
                 House.gc_sign,
                 House.gc_fact,
@@ -99,6 +101,7 @@ def query_house_by_id(id: int):
             .join(Grs, House.id_grs == Grs.id, isouter=True)
             .join(TypePacking, House.id_type_packing == TypePacking.id, isouter=True)
             .join(TypePipeMaterial, House.id_type_pipe_material == TypePipeMaterial.id, isouter=True)
+            .join(TypeSPDGAction, House.id_type_spdg_action == TypeSPDGAction.id, isouter=True)
             .where(House.id == id)
         )
 

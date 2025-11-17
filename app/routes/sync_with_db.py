@@ -5,7 +5,7 @@ from app.bitrix.gasification_stage import add_item_for_db_sync as gasification_s
 from app.db.query_object_ks_gs import query_house_by_id, update_house_with_crm_ids
 from app.enums.db_to_bitrix_fields import HouseToObjectKSFields, HouseToGasificationStageFields
 from app.enums.object_ks import ObjectKSFields, ClientType, GasificationType, District
-from app.enums.gasification_stage import GasificationStageFields, Grs2, Pad, Material
+from app.enums.gasification_stage import GasificationStageFields, Event, Grs2, Pad, Material
 
 router = APIRouter(prefix="/sync_with_db", tags=["db"])
 
@@ -18,14 +18,19 @@ def build_payloads(house):
         # pydantic_schema_field_name = HouseToObjectKSFields[key].value
         # bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
 
-        if key in ("id", "postal_index", "town", "street", "house_number", "corpus_number", "flat_number"):
+        if key == "id":
+            pydantic_schema_field_name = HouseToObjectKSFields[key].value
+            bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
+            object_ks_payload[bitrix_field_name] = value
+
+        elif key in ("postal_index", "town", "street", "house_number", "corpus_number", "flat_number"):
             continue
 
-        if key in ("is_to_from_sibgs", "is_double_adress", "is_ods"):
+        elif key in ("is_to_from_sibgs", "is_double_adress", "is_ods"):
             pydantic_schema_field_name = HouseToObjectKSFields[key].value
-            print(pydantic_schema_field_name)
+            # print(pydantic_schema_field_name)
             bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
-            print(bitrix_field_name)
+            # print(bitrix_field_name)
             object_ks_payload[bitrix_field_name] = bool(value)
 
         elif key == "type_client":
@@ -62,6 +67,11 @@ def build_payloads(house):
             pydantic_schema_field_name = HouseToGasificationStageFields[key].value
             bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
             gasification_stage_payload[bitrix_field_name] = Material(value).value
+        
+        elif key == "type_spdg_action":
+            pydantic_schema_field_name = HouseToGasificationStageFields[key].value
+            bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
+            gasification_stage_payload[bitrix_field_name] = Event(value).value
 
         else:
             pydantic_schema_field_name = HouseToGasificationStageFields[key].value
@@ -70,8 +80,6 @@ def build_payloads(house):
 
     
     return object_ks_payload, gasification_stage_payload
-    
-
 
 @router.get("/house/{id}")
 def sync_with_db_house_endpoint(id: int):

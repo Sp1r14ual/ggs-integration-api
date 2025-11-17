@@ -25,7 +25,7 @@ class HouseToObjectKSFields(Enum):
     cadastr_number = "land_kadastr_number"
     cadastr_number_oks = "oks_kadastr_number"
     organization = "owners" # Как интегрировать владельцев?
-    
+    id = "id_house_osa"
 
 class HouseToGasificationStageFields(Enum):
     # Этапы газификации
@@ -46,6 +46,7 @@ class HouseToGasificationStageFields(Enum):
     spdg_date_protocol = "date1"
     spdg_number = "number"
     spdg_date = "date2"
+    type_spdg_action = "event"
     gc_plan = "planned"
     gc_sign = "stated"
     gc_fact = "actual"
