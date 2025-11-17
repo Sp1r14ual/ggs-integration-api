@@ -84,6 +84,10 @@ def build_payloads(house):
 @router.get("/house/{id}")
 def sync_with_db_house_endpoint(id: int):
     house = query_house_by_id(id)
+
+    if not house:
+        raise HTTPException(status_code=400, detail="Item not found") 
+
     object_ks_payload, gasification_stage_payload = build_payloads(house)
 
     object_ks_crm_id = object_ks_add_util(object_ks_payload)["id"]

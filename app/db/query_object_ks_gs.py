@@ -106,9 +106,14 @@ def query_house_by_id(id: int):
         )
 
         # Выполнение запроса
-        result = session.execute(query).first()._mapping
+        result = session.execute(query).first()
 
-        result_dict = clean_result(result)
+        if not result:
+            return None
+
+        result_mapping = result._mapping
+
+        result_dict = clean_result(result_mapping)
 
         return result_dict
 
