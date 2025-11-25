@@ -63,4 +63,21 @@ class PersonToContactFields(Enum):
     snils = "UF_CRM_1739334773204"
 
 class OrganizationToCompanyFields(Enum):
-    pass
+    name = "TITLE"
+    is_pir = "UfCrm1756803695"
+    is_smr_gvd_gnd = "UfCrm1756803661"
+    is_to_gvd_gnd = "UfCrm1756803741"
+
+class OrganizationToCompanyRequisite(Enum):
+    inn = "RQ_INN"
+    kpp = "RQ_KPP"
+    ogrn = "RQ_OGRN"
+
+class OrganizationToCompanyBankdetailRequisite(Enum):
+    bik = "RQ_BIK"
+    korr_acc = "RQ_COR_ACC_NUM"
+    calc_acc = "RQ_ACC_NUM"
+    bank = "RQ_BANK_NAME"
+    
+
+
