@@ -34,3 +34,6 @@ class Organization(Base):
     to_ggsi = Column(Integer, nullable=True)
     to_ggss = Column(Integer, nullable=True)
     to_rgs = Column(Integer, nullable=True)
+    company_crm_id = Column(Integer, nullable=True)
+    requisite_crm_id = Column(Integer, nullable=True)
+    bankdetail_requisite_crm_id = Column(Integer, nullable=True)
