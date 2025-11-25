@@ -6,10 +6,11 @@ from app.bitrix.contact import add_item_for_db_sync as contact_add_util
 from app.bitrix.company import add_item_for_db_sync as company_add_util
 from app.bitrix.requisite import add_item_for_db_sync as requisite_add_util
 from app.bitrix.requisite_bankdetail import add_item_for_db_sync as requisite_bankdetail_add_util
+from app.bitrix.address import add_item_for_db_sync as address_add_util
 from app.db.query_object_ks_gs import query_house_by_id, update_house_with_crm_ids
 from app.db.query_contact import query_person_by_id
 from app.db.query_company import query_organization_by_id, update_organization_with_crm_ids
-from app.enums.db_to_bitrix_fields import HouseToObjectKSFields, HouseToGasificationStageFields, PersonToContactFields, OrganizationToCompanyFields, OrganizationToCompanyRequisite, OrganizationToCompanyBankdetailRequisite
+from app.enums.db_to_bitrix_fields import HouseToObjectKSFields, HouseToGasificationStageFields, PersonToContactFields, PersonToContactRequisite, PersonToAddress, OrganizationToCompanyFields, OrganizationToCompanyRequisite, OrganizationToCompanyBankdetailRequisite
 from app.enums.object_ks import ObjectKSFields, ClientType, GasificationType, District
 from app.enums.gasification_stage import GasificationStageFields, Event, Grs2, Pad, Material
 
@@ -124,6 +125,49 @@ def build_payload_contact(person):
     
     return contact_payload
 
+def build_payload_contact_requisite(person, contact_id):
+    requisite_payload = {"ENTITY_TYPE_ID": 3, 
+                        "ENTITY_ID": contact_id, 
+                        "PRESET_ID": 3,
+                        "NAME": " ".join([person["family_name"], person["name"], person["patronimic_name"]])}
+
+    for key, value in person.items():
+        if key not in PersonToContactRequisite.__members__:
+            continue
+
+        bitrix_field_name = PersonToContactRequisite[key].value
+        requisite_payload[bitrix_field_name] = value
+    
+    return requisite_payload
+
+def build_payload_contact_address(person, requisite_id):
+    address_payload = {
+        "TYPE_ID": 4, # Адрес регистраци
+        "ENTITY_TYPE_ID": 8, # Реквизиты
+        "ENTITY_ID": requisite_id
+    }
+
+    ADDRESS_2 = ""
+
+    for key, value in person.items():
+        if key not in PersonToAddress.__members__:
+            continue
+        
+        if key == "reg_address":
+            bitrix_field_name = PersonToAddress[key].value
+            reg_address_payload[bitrix_field_name] = value
+            continue
+
+        if key in ("reg_street", "reg_house", "reg_house"):
+            ADDRESS_2 += value + ", "
+            continue
+
+        bitrix_field_name = PersonToAddress[key].value
+        address_payload[bitrix_field_name] = value
+
+    address_payload["ADDRESS_2"] = ADDRESS_2
+    
+    return address_payload
 
 @router.get("/person/{id}")
 def sync_with_db_person_endpoint(id: int):
@@ -133,12 +177,19 @@ def sync_with_db_person_endpoint(id: int):
         raise HTTPException(status_code=400, detail="Person not found") 
 
     contact_payload = build_payload_contact(person)
+    bitrix_contact_id = contact_add_util(contact_payload)
 
-    bitrix_item = contact_add_util(contact_payload)
+    contact_requisite_payload = build_payload_contact_requisite(person, bitrix_contact_id)
+    requisite_contact_id = requisite_add_util(contact_requisite_payload)
 
-    # Добавить фиксирование crm id в таблице person
+    contact_address_payload = build_payload_contact_address(person, requisite_contact_id)
+    address_contact_id = address_add_util(contact_address_payload)
 
-    return bitrix_item
+    return {
+        "company_id": bitrix_contact_id,
+        "requisite_id": requisite_contact_id,
+        "address_id": address_contact_id
+    }
 
 def build_payload_company(organization):
     company_payload = {}
