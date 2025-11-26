@@ -189,7 +189,7 @@ def sync_with_db_person_endpoint(id: int):
 
     return {
         "person_id": id,
-        "company_id": bitrix_contact_id,
+        "contact_id": bitrix_contact_id,
         "requisite_id": requisite_contact_id,
         # "address_id": address_contact_id
     }
