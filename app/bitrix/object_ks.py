@@ -1,9 +1,9 @@
 from fast_bitrix24 import Bitrix
 from datetime import datetime, timedelta
 import app.enums.object_ks as ObjectKSEnums
+from app.settings import settings
 
-webhook = "https://dev.ggs-nsk.ru/rest/132/sgcqlj6lfixazqh6/"
-b = Bitrix(webhook)
+b = Bitrix(settings.BITRIX_WEBHOOK)
 
 def build_payload(object_ks):
     object_ks_to_dict = dict(object_ks)

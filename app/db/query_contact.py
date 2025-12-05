@@ -1,9 +1,7 @@
 from sqlalchemy import create_engine, select, update
 from sqlalchemy.orm import Session
 from app.models.person import Person
-
-engine = create_engine(
-    'mssql+pyodbc://DESKTOP-OE5G1EA\\SQLEXPRESS/ggs_stud?driver=SQL+Server+Native+Client+11.0', echo=True)
+from app.db.engine import engine
 
 def query_person_by_id(id: int):
 

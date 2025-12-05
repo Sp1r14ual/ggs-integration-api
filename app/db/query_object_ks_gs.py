@@ -13,9 +13,7 @@ from app.models.type_packing import TypePacking
 from app.models.type_pipe_material import TypePipeMaterial
 from app.models.type_spdg_action import TypeSPDGAction
 
-
-engine = create_engine(
-    'mssql+pyodbc://DESKTOP-OE5G1EA\\SQLEXPRESS/ggs_stud?driver=SQL+Server+Native+Client+11.0', echo=True)
+from app.db.engine import engine
 
 def clean_result(result):
     result_dict = dict(result)

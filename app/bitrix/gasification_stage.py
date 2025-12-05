@@ -1,9 +1,9 @@
 from fast_bitrix24 import Bitrix
 from datetime import datetime, timedelta
 import app.enums.gasification_stage as GasificationStageEnums
+from app.settings import settings
 
-webhook = "https://dev.ggs-nsk.ru/rest/132/sgcqlj6lfixazqh6/"
-b = Bitrix(webhook)
+b = Bitrix(settings.BITRIX_WEBHOOK)
 
 def build_payload(gasification_stage):
     gasification_stage_to_dict = dict(gasification_stage)
