@@ -1,8 +1,8 @@
 from fast_bitrix24 import Bitrix
 from datetime import datetime, timedelta
+from app.settings import settings
 
-webhook = "https://dev.ggs-nsk.ru/rest/132/sgcqlj6lfixazqh6/"
-b = Bitrix(webhook)
+b = Bitrix(settings.BITRIX_WEBHOOK)
 
 def add_item_for_db_sync(company):
     payload = company
