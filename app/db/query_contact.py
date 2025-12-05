@@ -25,7 +25,7 @@ def update_person_with_crm_ids(id: int, contact_crm_id: int, requisite_crm_id: i
             .values(
                 contact_crm_id=contact_crm_id,
                 requisite_crm_id=requisite_crm_id,
-                has_crm_address = 1 if has_crm_address else 0
+                has_crm_address=int(has_crm_address)
             )
         )
 
