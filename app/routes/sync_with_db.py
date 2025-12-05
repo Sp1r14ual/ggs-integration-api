@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
-from app.bitrix.object_ks import add_item_for_db_sync as object_ks_add_util
-from app.bitrix.gasification_stage import add_item_for_db_sync as gasification_stage_add_util
+from app.bitrix.object_ks import add_item_for_db_sync as object_ks_add_util, update_item_for_db_sync as object_ks_update_util
+from app.bitrix.gasification_stage import add_item_for_db_sync as gasification_stage_add_util, update_item_for_db_sync as gasification_stage_update_util
 from app.bitrix.contact import add_item_for_db_sync as contact_add_util
 from app.bitrix.company import add_item_for_db_sync as company_add_util
 from app.bitrix.requisite import add_item_for_db_sync as requisite_add_util
@@ -30,7 +30,8 @@ def build_payloads_object_ks_gs(house):
             bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
             object_ks_payload[bitrix_field_name] = value
 
-        elif key in ("postal_index", "town", "street", "house_number", "corpus_number", "flat_number"):
+        elif key in ("postal_index", "town", "street", "house_number", "corpus_number", "flat_number",
+        "object_ks_crm_id", "gasification_stage_crm_id"):
             continue
 
         elif key in ("is_to_from_sibgs", "is_double_adress", "is_ods"):
@@ -90,18 +91,38 @@ def build_payloads_object_ks_gs(house):
 
 @router.get("/house/{id}")
 def sync_with_db_house_endpoint(id: int):
+
+    # Получаем house из БД
     house = query_house_by_id(id)
 
+    # Возвращаем ошибку, если house пустой
     if not house:
-        raise HTTPException(status_code=400, detail="House not found") 
+        raise HTTPException(status_code=400, detail="House not found")
 
+    # Получаем из house id в объекта КС и этапа газификации в битриксе
+    object_ks_crm_id, gasification_stage_crm_id = house["object_ks_crm_id"], house["gasification_stage_crm_id"]
+
+    # Собираем payload для Объекта КС и Этапа газификации, который будет отправлен в битрикс
     object_ks_payload, gasification_stage_payload = build_payloads_object_ks_gs(house)
 
-    object_ks_crm_id = object_ks_add_util(object_ks_payload)["id"]
+    # Если object_ks_crm_id не null, значит объект КС в битриксе существует, вызываем процедуру обновления
+    if object_ks_crm_id:
+        res = object_ks_update_util(object_ks_crm_id, object_ks_payload)
+        print(res)
+    # Иначе создаем новый Объект КС в битриксе и сохраняем его id
+    else:
+        object_ks_crm_id = object_ks_add_util(object_ks_payload)["id"]
 
+    # Сохраняем id Объекта КС в payload этапа газификации к битриксу
     gasification_stage_payload["parentId1066"] = object_ks_crm_id
 
-    gasification_stage_crm_id = gasification_stage_add_util(gasification_stage_payload)["id"]
+    # Если gasification_stage_crm_id не null, значит этап газификации в битриксе существует, вызываем процедуру обновления
+    if gasification_stage_crm_id:
+        res = gasification_stage_update_util(gasification_stage_crm_id, gasification_stage_payload)
+        print(res)
+    # Иначе создаем новый этап газификации в битриксе и сохраняем его id
+    else:
+        gasification_stage_crm_id = gasification_stage_add_util(gasification_stage_payload)["id"]
 
     update_house_with_crm_ids(id, object_ks_crm_id, gasification_stage_crm_id)
 
