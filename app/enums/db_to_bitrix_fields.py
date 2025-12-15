@@ -108,6 +108,21 @@ class OrganizationToCompanyBankdetailRequisite(Enum):
     korr_acc = "RQ_COR_ACC_NUM"
     calc_acc = "RQ_ACC_NUM"
     bank = "RQ_BANK_NAME"
-    
+
+class EquipToEquip(Enum):
+    packing_name = "ufCrm47_1753076112"
+    diameter = "ufCrm47_1755666805151"
+    diameter_type_name = "ufCrm47_1753076284"
+    length = "ufCrm47_1753076263"
+    pipe_material_name = "ufCrm47_1753076229"
+    amount = "ufCrm47_1753076068"
+    num = "ufCrm47_1753075654"
+
+class HouseEquipToEquip(Enum):
+    equip_name = "ufCrm47_1753081361"
+    type_cat_name = "ufCrm47_1753075437"
+    boil_setup_name = "ufCrm47_1753075764"
+    year_produce = "ufCrm47_1753075747"
+    power = "ufCrm47_1753075726"
 
 
