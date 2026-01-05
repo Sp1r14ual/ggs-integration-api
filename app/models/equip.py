@@ -15,5 +15,6 @@ class Equip(Base):
     id_type_pipe_material = Column(Integer, ForeignKey('type_pipe_material.id'))
     diameter = Column(Numeric(precision=8, scale=2), nullable=True)
     num = Column(Integer, nullable=True)
+    equip_crm_id = Column(Integer, nullable=True)
 
 

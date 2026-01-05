@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
 from typing import Optional
-from app.db.query_equip import query_equip_by_id
-from app.db.query_house_equip import query_house_equip_by_id
+from app.db.query_equip import query_equip_by_id, update_equip_with_crm_ids
+from app.db.query_house_equip import query_house_equip_by_id, update_house_equip_with_crm_ids
 from app.enums.equip import EquipType, PackingType, MarkType, DiameterType, PipeMaterialType, BoilSetupType
 from app.enums.db_to_bitrix_fields import EquipToEquip, HouseEquipToEquip
 from app.bitrix.equip import add_item_for_db_sync as equip_add_util, update_item_for_db_sync as equip_update_util
@@ -67,8 +67,6 @@ def build_payload_equip(equip, house_equip):
 
 @router.get("/equip/{equip_id}/house_equip/{house_equip_id}")
 def sync_with_db_equip_endpoint(equip_id: int, house_equip_id: int):
-
-
     # Достаём оборудование из БД по id
     equip: dict = query_equip_by_id(equip_id)
     house_equip: dict = query_house_equip_by_id(house_equip_id)
@@ -79,8 +77,21 @@ def sync_with_db_equip_endpoint(equip_id: int, house_equip_id: int):
     # Собираем payload оборудования для отправки в битрикс
     equip_payload = build_payload_equip(equip, house_equip)
 
-    # return equip_payload
+    #Вытаскиваем crm_id
+    equip_crm_id = equip["equip_crm_id"]
 
-    res = equip_add_util(equip_payload)
+    # Проверяем, если equip_crm_id не null в обеих таблицах, то обновляем, иначе создаем новую
+    if equip["equip_crm_id"] and house_equip["equip_crm_id"]:
+        res = equip_update_util(equip_crm_id, equip_payload)
+    else:
+        equip_crm_id = equip_add_util(equip_payload)["id"]
+
+    # Обновляем обе таблицы
+    update_equip_with_crm_ids(equip_id, equip_crm_id)
+    update_house_equip_with_crm_ids(house_equip_id, equip_crm_id)
    
-    return res
+    return {
+        "equip_id": equip_id,
+        "house_equip_id": house_equip_id,
+        "equip_crm_id": equip_crm_id
+    }

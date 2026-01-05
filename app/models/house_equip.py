@@ -16,5 +16,6 @@ class HouseEquip(Base):
     id_type_cat_house_equip = Column(Integer, ForeignKey('type_cat_house_equip.id')) 
     year_produce = Column(Integer, nullable=True)
     id_type_boil_setup = Column(Integer, ForeignKey('type_boil_setup.id'))
+    equip_crm_id = Column(Integer, nullable=True)
 
 

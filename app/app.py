@@ -10,8 +10,8 @@ from app.settings import settings
 
 app = FastAPI()
 
-app.include_router(gasification_stage_router)
-app.include_router(object_ks_router)
+# app.include_router(gasification_stage_router)
+# app.include_router(object_ks_router)
 app.include_router(sync_with_db_router)
 app.include_router(sync_with_db_router2)
 

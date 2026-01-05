@@ -19,12 +19,13 @@ def query_equip_by_id(id: int):
                 Equip.length,
                 TypePipeMaterial.name.label('pipe_material_name'),
                 Equip.amount,
-                Equip.num
+                Equip.num,
+                Equip.equip_crm_id
             )
             .outerjoin(TypePacking, Equip.id_type_packing == TypePacking.id)
             .outerjoin(TypeDiameter, Equip.id_type_diameter == TypeDiameter.id)
             .outerjoin(TypePipeMaterial, Equip.id_type_pipe_material == TypePipeMaterial.id)
-            .where(Equip.id == 1195)
+            .where(Equip.id == id)
         )
 
         result = db.execute(query).first()
@@ -36,4 +37,14 @@ def query_equip_by_id(id: int):
 
         return result_mapping
 
+def update_equip_with_crm_ids(id: int, equip_crm_id: int):
+    with Session(autoflush=False, bind=engine) as session:
+        query = (
+            update(Equip)
+            .where(Equip.id == id)
+            .values(equip_crm_id=equip_crm_id)
+        )
+
+        result = session.execute(query)
+        session.commit()
     
