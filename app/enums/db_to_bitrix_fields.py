@@ -127,5 +127,6 @@ class HouseEquipToEquip(Enum):
     amount = "ufCrm47_1753075654"
     du1 = "ufCrm47_1755666805151"
     du2 = "ufCrm47_1753076284"
+    meters = "ufCrm47_1753076263"
 
 
