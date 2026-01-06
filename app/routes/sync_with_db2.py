@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from typing import Optional
 from app.db.query_equip import query_equip_by_id, update_equip_with_crm_ids
 from app.db.query_house_equip import query_house_equip_by_id, update_house_equip_with_crm_ids
+from app.db.query_contract import query_contract_by_id
 from app.enums.equip import EquipType, PackingType, MarkType, DuType, DiameterType, StoveType, PipeMaterialType, BoilSetupType
 from app.enums.db_to_bitrix_fields import EquipToEquip, HouseEquipToEquip
 from app.bitrix.equip import add_item_for_db_sync as equip_add_util, update_item_for_db_sync as equip_update_util
@@ -110,3 +111,10 @@ def sync_with_db_equip_endpoint(equip_id: int, house_equip_id: int):
         "house_equip_id": house_equip_id,
         "equip_crm_id": equip_crm_id
     }
+
+@router.get("/contract/{contract_id}")
+def sync_with_db_contracts_endpoint(contract_id: int):
+    # Достаём оборудование из БД по id
+    contract: dict = query_contract_by_id(contract_id)
+
+    return contract
