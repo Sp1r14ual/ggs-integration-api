@@ -4,6 +4,7 @@ from typing import Optional
 from app.db.query_equip import query_equip_by_id, update_equip_with_crm_ids
 from app.db.query_house_equip import query_house_equip_by_id, update_house_equip_with_crm_ids
 from app.db.query_contract import query_contract_by_id, update_contract_with_crm_id
+from app.db.query_net import query_net_by_id
 from app.enums.equip import EquipType, PackingType, MarkType, DuType, DiameterType, StoveType, PipeMaterialType, BoilSetupType
 from app.enums.contract import ContractType, ContractTypePrefix, ContractCategory, ContractKind, ContractCurrentStatus
 from app.enums.db_to_bitrix_fields import EquipToEquip, HouseEquipToEquip, ContractToContract
@@ -226,3 +227,18 @@ def sync_with_db_contracts_endpoint(contract_id: int):
         "contract_id": contract_id,
         "contract_crm_id": contract_crm_id
     }
+
+
+def build_payload_ground(ground):
+    pass
+
+@router.get("/ground/{ground_id}")
+def sync_with_db_ground_endpoint(ground_id: int):
+
+    # Достаём площадку из БД по id
+    ground: dict = query_net_by_id(ground_id)
+
+    if not ground:
+        raise HTTPException(status_code=400, detail="Contract not found")
+    
+    return ground
