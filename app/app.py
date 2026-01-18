@@ -7,7 +7,6 @@ from app.routes.sync_with_db2 import router as sync_with_db_router2
 from fast_bitrix24 import Bitrix
 from app.settings import settings
 
-
 app = FastAPI()
 
 # app.include_router(gasification_stage_router)
@@ -22,8 +21,41 @@ def root():
     return HTMLResponse(content=content, status_code=200)
 
 # Тестовый эндпоинт для получения констант enumoв из битрикса
-@app.get("/{id_entity}/{id_obj}")
-def test_get(id_entity: int, id_obj: int):
+@app.get("/get_entity/{id_entity}/{id_obj}")
+def test_get_entity(id_entity: int, id_obj: int):
     b = Bitrix(settings.BITRIX_WEBHOOK)
     return b.call('crm.item.get', {"id": id_obj, "entityTypeId": id_entity})
     #return b.call('crm.contact.get', {'id': id_obj})
+
+
+@app.get("/get_entity_type/{id_entity}")
+def get_entity_type(id_entity: int):
+    b = Bitrix(settings.BITRIX_WEBHOOK)
+    all_types = b.get_all('crm.type.list')
+    for entity in all_types:
+        if entity.get('entityTypeId') == id_entity:
+            return entity
+
+
+@app.get("/get_list/{id_list}")
+def test_get_list(id_list: int):
+    b = Bitrix(settings.BITRIX_WEBHOOK)
+    return b.get_all('lists.element.get',
+                  {'IBLOCK_TYPE_ID': 'lists',
+                         'IBLOCK_ID': id_list,
+                         'NAV_PARAMS': {
+                            'nPageSize': 100,  # Элементов на странице
+                            'iNumPage': 1     # Номер страницы
+                        }
+                   })
+
+@app.get("/get_field/{entity_code}/{id_field}")
+def test_get_field_info(entity_code:str, id_field: int):
+    b = Bitrix(settings.BITRIX_WEBHOOK)
+    field_data = b.call(
+                 'userfieldconfig.get',
+                    { 'moduleId': 'crm',
+                            'entityId': entity_code,
+                            'id': id_field
+                            })
+    return [{'id': x.get('id'), 'value': x.get('value')} for x in field_data['enum']]
