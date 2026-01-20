@@ -1,0 +1,25 @@
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.orm import Session
+from app.db.engine import engine
+from app.models.crm_fields import CrmFields
+
+def create_crm_fields_table():
+
+    inspector = inspect(engine)
+
+    # Если таблица уже есть, дропаем
+    if inspector.has_table("crm_fields"):
+        CrmFields.__table__.drop(engine)
+
+    # Создаем новую
+    CrmFields.__table__.create(engine)
+    return True
+
+def fill_info_crm_fields_table(rows: list):
+    with Session(engine) as db:
+        db.add_all(rows)
+        db.commit()
+        return True
+
+
+
