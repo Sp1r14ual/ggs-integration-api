@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
@@ -117,8 +118,8 @@ def build_payloads_object_ks_gs(house):
     return object_ks_payload, gasification_stage_payload
 
 
-@router.get("/house/{id}")
-def sync_with_db_house_endpoint(id: int) -> dict:
+@router.get("/house/{id}/object_ks/{contract_crm_id}")
+def sync_with_db_house_endpoint(id: int, contract_crm_id: Optional[int]) -> dict:
     '''Эндпоинт для синхронизации битрикс-сущностей Объект КС и Этапы газификации с таблицей house'''
 
     # Получаем house из БД
@@ -129,7 +130,7 @@ def sync_with_db_house_endpoint(id: int) -> dict:
         sync_with_db_person_endpoint(house_owner["id_person"], id)
         house_owner = query_house_owner_by_house(id)
     # если пустой company_crm_id но не  пустой id_organization, то синхроним его
-    elif house_owner["id_organization"] and not house_owner["company_crm_id"]:
+    if house_owner["id_organization"] and not house_owner["company_crm_id"]:
         sync_with_db_organization_endpoint(house_owner["id_organization"], id)
         house_owner = query_house_owner_by_house(id)
 
@@ -145,6 +146,9 @@ def sync_with_db_house_endpoint(id: int) -> dict:
 
     # Собираем payload для Объекта КС и Этапа газификации, который будет отправлен в битрикс
     object_ks_payload, gasification_stage_payload = build_payloads_object_ks_gs(house)
+
+    if contract_crm_id:
+        object_ks_payload["parentId1078"] = contract_crm_id
 
     # return {
     #     "object_ks_payload": object_ks_payload,
@@ -239,7 +243,7 @@ def build_payload_contact_address(person, requisite_id):
     return address_payload
 
 @router.get("/person/{id}/objectks/{object_ks_id}")
-def sync_with_db_person_endpoint(id: int, object_ks_id: int) -> dict:
+def sync_with_db_person_endpoint(id: int, object_ks_id: Optional[int]) -> dict:
     '''Эндпоинт для синхронизации битрикс-контактов с таблицей person'''
 
     # Достаем person из БД по id
@@ -256,7 +260,8 @@ def sync_with_db_person_endpoint(id: int, object_ks_id: int) -> dict:
     #Собираем payload для создания/обновления битрикс-контакта
     contact_payload = build_payload_contact(person)
 
-    contact_payload["parentId1066"] = object_ks_id
+    if object_ks_id:
+        contact_payload["parentId1066"] = object_ks_id
 
     # Если контакт уже существует в битрикс, то запускаем процедуру обновления
     if bitrix_contact_id:
@@ -368,7 +373,7 @@ def build_payload_company_bankdetail_requisite(organization, requisite_id):
     return bankdetail_requisite_payload
 
 @router.get("/organization/{id}/objectks/{object_ks_id}")
-def sync_with_db_organization_endpoint(id: int, object_ks_id: int):
+def sync_with_db_organization_endpoint(id: int, object_ks_id: Optional[int]):
 
     # Достаём организацию из БД по id
     organization: dict = query_organization_by_id(id)
@@ -386,7 +391,8 @@ def sync_with_db_organization_endpoint(id: int, object_ks_id: int):
     # Собираем payload компании для отправки в битрикс
     company_payload, preset_id = build_payload_company(organization)
 
-    company_payload["parentId1066"] = object_ks_id
+    if object_ks_id:
+        company_payload["parentId1066"] = object_ks_id
 
     # Если компания в битриксе уже существует, то обновляем
     if bitrix_company_id:

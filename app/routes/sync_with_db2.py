@@ -9,6 +9,7 @@ from app.enums.contract import ContractType, ContractTypePrefix, ContractCategor
 from app.enums.db_to_bitrix_fields import EquipToEquip, HouseEquipToEquip, ContractToContract
 from app.bitrix.equip import add_item_for_db_sync as equip_add_util, update_item_for_db_sync as equip_update_util
 from app.bitrix.contract import add_item_for_db_sync as contract_add_util, update_item_for_db_sync as contract_update_util
+from app.routes.sync_with_db import sync_with_db_house_endpoint
 
 router = APIRouter(prefix="/bidirect_sync2", tags=["bidirect_sync2"])
 
@@ -118,7 +119,7 @@ def build_payload_contract(contract):
     contract_payload = dict()
 
     for key, value in contract.items():
-        if key not in ContractToContract.__members__ and key != 'date':
+        if key not in ContractToContract.__members__ and key not in ('date', 'contact_crm_id', 'company_crm_id'):
             continue
 
         elif key == "type_contract_name":
@@ -182,6 +183,14 @@ def build_payload_contract(contract):
                 contract_payload[bitrix_field_name] = "CO_" + str(value)
                 continue
 
+        if key in ('contact_crm_id', 'company_crm_id'):
+            print("HERE")
+            if key == "contact_crm_id" and value:
+                contract_payload["contactId"] = value
+            elif key == "company_crm_id" and value:
+                contract_payload["companyId"] = value
+            continue
+
         if key == "date":
             bitrix_field_name = ContractToContract[key + "1"].value
             contract_payload[bitrix_field_name] = value
@@ -202,8 +211,25 @@ def sync_with_db_contracts_endpoint(contract_id: int):
     if not contract:
         raise HTTPException(status_code=400, detail="Contract not found")
 
+    # если пустой contact_crm_id но не  пустой id_person, то синхроним его и перезапрашиваем
+    if contract["id_person"] and not contract["contact_crm_id"]:
+        sync_with_db_person_endpoint(contract["id_person"], contract["object_ks_crm_id"])
+        contract = query_contract_by_id(contract_id)
+        
+    # если пустой company_crm_id но не  пустой id_organization, то синхроним его
+    if contract["id_organization"] and not contract["company_crm_id"]:
+        sync_with_db_organization_endpoint(contract["id_organization"], contract["object_ks_crm_id"])
+        contract = query_contract_by_id(contract_id)
+
+    if contract["id_house"] and not contract["object_ks_crm_id"]:
+        sync_with_db_house_endpoint(contract["id_house"])
+        contract = query_contract_by_id(contract_id)
+
     # Собираем payload договора для отправки в битрикс
     contract_payload = build_payload_contract(contract)
+
+    if contract["object_ks_crm_id"]:
+        contract_payload["parentId1066"] = contract["object_ks_crm_id"]
 
     # return {
     #     "contract_db": contract,
@@ -213,7 +239,7 @@ def sync_with_db_contracts_endpoint(contract_id: int):
     #Вытаскиваем crm_id
     contract_crm_id = contract["contract_crm_id"]
 
-    # Проверяем, если equip_crm_id не null в обеих таблицах, то обновляем, иначе создаем новую
+    # Проверяем, если contract_crm_id не null в обеих таблицах, то обновляем, иначе создаем новую
     if contract["contract_crm_id"]:
         res = contract_update_util(contract_crm_id, contract_payload)
     else:
@@ -221,6 +247,9 @@ def sync_with_db_contracts_endpoint(contract_id: int):
 
     # Обновляем таблицу
     update_contract_with_crm_id(contract_id, contract_crm_id)
+
+    # Ещё раз вызываем синхронизацию, чтобы записать id договора в объект кс
+    sync_with_db_house_endpoint(contract["id_house"], contract_crm_id)
    
     return {
         "contract_id": contract_id,
