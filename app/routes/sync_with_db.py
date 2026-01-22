@@ -13,6 +13,7 @@ from app.db.query_object_ks_gs import query_house_by_id, update_house_with_crm_i
 from app.db.query_contact import query_person_by_id, update_person_with_crm_ids
 from app.db.query_company import query_organization_by_id, update_organization_with_crm_ids
 from app.db.query_house_owner import query_house_owner_by_house
+from app.db.query_crm_fields import query_crm_field_by_elem_value
 from app.enums.db_to_bitrix_fields import HouseToObjectKSFields, HouseToGasificationStageFields, PersonToContactFields, PersonToContactRequisite, PersonToAddress, OrganizationToCompanyFields, OrganizationToAddress, OrganizationToCompanyRequisite, OrganizationToCompanyBankdetailRequisite
 from app.enums.object_ks import ObjectKSFields, ClientType, GasificationType, District
 from app.enums.gasification_stage import GasificationStageFields, Event, Grs2, Pad, Material
@@ -44,51 +45,75 @@ def build_payloads_object_ks_gs(house):
             bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
             # print(bitrix_field_name)
             object_ks_payload[bitrix_field_name] = "Y" if bool(value) else "N"
+        
+        elif key in ('type_client', 'type_house_gazification', 'district'):
+            crm_field = query_crm_field_by_elem_value(value)
+            if not crm_field:
+                continue
+            field_name_unified = crm_field["field_name_unified"]
+            elem_id = crm_field["elem_id"]
+            object_ks_payload[field_name_unified] = elem_id
+        
+        elif key in ('grs', 'type_packing', 'type_pipe_material', 'type_spdg_action'):
+            crm_field = query_crm_field_by_elem_value(value)
+            if not crm_field:
+                continue
+            field_name_unified = crm_field["field_name_unified"]
+            elem_id = crm_field["elem_id"]
+            gasification_stage_payload[field_name_unified] = elem_id
 
-        elif key == "type_client":
-            pydantic_schema_field_name = HouseToObjectKSFields[key].value
-            bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
-            object_ks_payload[bitrix_field_name] = ClientType(value).value
 
-        elif key == "type_house_gazification":
-            pydantic_schema_field_name = HouseToObjectKSFields[key].value
-            bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
-            object_ks_payload[bitrix_field_name] = GasificationType(value).value
+        # elif key == "type_client":
+        #     pydantic_schema_field_name = HouseToObjectKSFields[key].value
+        #     bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
+        #     object_ks_payload[bitrix_field_name] = ClientType(value).value
 
-        elif key == "district":
-            pydantic_schema_field_name = HouseToObjectKSFields[key].value
-            bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
-            object_ks_payload[bitrix_field_name] = District(value).value
+        # elif key == "type_house_gazification":
+        #     pydantic_schema_field_name = HouseToObjectKSFields[key].value
+        #     bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
+        #     object_ks_payload[bitrix_field_name] = GasificationType(value).value
+
+        # elif key == "district":
+        #     pydantic_schema_field_name = HouseToObjectKSFields[key].value
+        #     bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
+        #     object_ks_payload[bitrix_field_name] = District(value).value
 
         elif key in ("cadastr_number", "cadastr_number_oks", "address", "contact_id", "company_id"):
             pydantic_schema_field_name = HouseToObjectKSFields[key].value
             bitrix_field_name = ObjectKSFields[pydantic_schema_field_name].value
             object_ks_payload[bitrix_field_name] = value
         
-        elif key == "grs":
-            pydantic_schema_field_name = HouseToGasificationStageFields[key].value
-            bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
-            gasification_stage_payload[bitrix_field_name] = Grs2(value).value
+        # elif key == "grs":
+        #     pydantic_schema_field_name = HouseToGasificationStageFields[key].value
+        #     bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
+        #     gasification_stage_payload[bitrix_field_name] = Grs2(value).value
 
-        elif key == "type_packing":
-            pydantic_schema_field_name = HouseToGasificationStageFields[key].value
-            bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
-            gasification_stage_payload[bitrix_field_name] = Pad(value).value
+        # elif key == "type_packing":
+        #     pydantic_schema_field_name = HouseToGasificationStageFields[key].value
+        #     bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
+        #     gasification_stage_payload[bitrix_field_name] = Pad(value).value
 
-        elif key == "type_pipe_material":
-            pydantic_schema_field_name = HouseToGasificationStageFields[key].value
-            bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
-            gasification_stage_payload[bitrix_field_name] = Material(value).value
+        # elif key == "type_pipe_material":
+        #     pydantic_schema_field_name = HouseToGasificationStageFields[key].value
+        #     bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
+        #     gasification_stage_payload[bitrix_field_name] = Material(value).value
         
-        elif key == "type_spdg_action":
-            pydantic_schema_field_name = HouseToGasificationStageFields[key].value
-            bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
-            gasification_stage_payload[bitrix_field_name] = Event(value).value
+        # elif key == "type_spdg_action":
+        #     pydantic_schema_field_name = HouseToGasificationStageFields[key].value
+        #     bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
+        #     gasification_stage_payload[bitrix_field_name] = Event(value).value
+
+        elif key in ('contact_id', 'company_id'):
+            if key == "contact_id":
+                gasification_stage_payload["contactId"] = value
+            else:
+                gasification_stage_payload["companyId"] = value
 
         else:
             pydantic_schema_field_name = HouseToGasificationStageFields[key].value
             bitrix_field_name = GasificationStageFields[pydantic_schema_field_name].value
             gasification_stage_payload[bitrix_field_name] = value
+
     return object_ks_payload, gasification_stage_payload
 
 
@@ -105,11 +130,12 @@ def sync_with_db_house_endpoint(id: int) -> dict:
         house_owner = query_house_owner_by_house(id)
     # если пустой company_crm_id но не  пустой id_organization, то синхроним его
     elif house_owner["id_organization"] and not house_owner["company_crm_id"]:
-
+        sync_with_db_organization_endpoint(house_owner["id_organization"], id)
         house_owner = query_house_owner_by_house(id)
+
     house["contact_id"] = house_owner["contact_crm_id"]
     house["company_id"] = house_owner["company_crm_id"]
-    print(house)
+
     # Возвращаем ошибку, если house пустой
     if not house:
         raise HTTPException(status_code=400, detail="House not found")
@@ -119,6 +145,11 @@ def sync_with_db_house_endpoint(id: int) -> dict:
 
     # Собираем payload для Объекта КС и Этапа газификации, который будет отправлен в битрикс
     object_ks_payload, gasification_stage_payload = build_payloads_object_ks_gs(house)
+
+    # return {
+    #     "object_ks_payload": object_ks_payload,
+    #     "gasification_stage_payload": gasification_stage_payload
+    # }
 
     # Если object_ks_crm_id не null, значит объект КС в битриксе существует, вызываем процедуру обновления
     if object_ks_crm_id:

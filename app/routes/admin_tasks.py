@@ -8,6 +8,16 @@ from app.db.query_crm_fields import fill_info_crm_fields_table
 
 router = APIRouter(prefix="/admin_tasks", tags=["admin_tasks"])
 
+@router.get("/get_contact/{id_obj}")
+def get_contact(id_obj: int):
+    b = Bitrix(settings.BITRIX_WEBHOOK)
+    return b.call('crm.contact.get', {'id': id_obj})
+
+@router.get("/get_company/{id_obj}")
+def get_company(id_obj: int):
+    b = Bitrix(settings.BITRIX_WEBHOOK)
+    return b.call('crm.company.get', {'id': id_obj})
+
 # Тестовый эндпоинт для получения констант enumoв из битрикса
 @router.get("/get_entity/{id_entity}/{id_obj}")
 def get_entity(id_entity: int, id_obj: int):
