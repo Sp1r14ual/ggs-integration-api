@@ -4,6 +4,7 @@ from typing import Optional
 from app.db.query_equip import query_equip_by_id, update_equip_with_crm_ids
 from app.db.query_house_equip import query_house_equip_by_id, update_house_equip_with_crm_ids
 from app.db.query_contract import query_contract_by_id, update_contract_with_crm_id
+from app.db.query_crm_fields import query_crm_field_by_elem_value
 from app.enums.equip import EquipType, PackingType, MarkType, DuType, DiameterType, StoveType, PipeMaterialType, BoilSetupType
 from app.enums.contract import ContractType, ContractTypePrefix, ContractCategory, ContractKind, ContractCurrentStatus
 from app.enums.db_to_bitrix_fields import EquipToEquip, HouseEquipToEquip, ContractToContract
@@ -17,40 +18,68 @@ def build_payload_equip(equip, house_equip):
     equip_payload = dict()
 
     for key, value in equip.items():
+        print(f"STATE: {key}:{value}")
         if key not in EquipToEquip.__members__:
             continue
 
-        elif key == "packing_name":
-            bitrix_field_name = EquipToEquip[key].value
-            equip_payload[bitrix_field_name] = PackingType(value).value
+        elif key in ('packing_name', 'pipe_material_name'):
+            crm_field = query_crm_field_by_elem_value(value)
+            if not crm_field:
+                continue
+            field_name_unified = crm_field["field_name_unified"]
+            elem_id = crm_field["elem_id"]
+            equip_payload[field_name_unified] = elem_id
+
             continue
+
+        # elif key == "packing_name":
+        #     bitrix_field_name = EquipToEquip[key].value
+        #     equip_payload[bitrix_field_name] = PackingType(value).value
+        #     continue
         
         # elif key == "diameter_type_name":
         #     bitrix_field_name = EquipToEquip[key].value
         #     equip_payload[bitrix_field_name] = DiameterType(value).value
         #     continue
 
-        elif key == "pipe_material_name":
-            bitrix_field_name = EquipToEquip[key].value
-            equip_payload[bitrix_field_name] = PipeMaterialType(value).value
-            continue
+        # elif key == "pipe_material_name":
+        #     bitrix_field_name = EquipToEquip[key].value
+        #     equip_payload[bitrix_field_name] = PipeMaterialType(value).value
+        #     continue
         
         else:
             bitrix_field_name = EquipToEquip[key].value
             equip_payload[bitrix_field_name] = value
 
     for key, value in house_equip.items():
+        print(f"STATE: {key}:{value}")
         if key not in HouseEquipToEquip.__members__ and key not in ('du'):
             continue
 
-        elif key == "equip_name":
-            bitrix_field_name = HouseEquipToEquip[key].value
-
-            if value not in MarkType.__members__:
+        elif key in ('equip_name', 'boil_setup_name', 'pg'):
+            if key == 'pg':
+                crm_field = query_crm_field_by_elem_value("ПГ-" + str(value))
+            # elif key == "du":
+            #     # Дополнительно проанализировать значения диаметров
+            #     crm_field = query_crm_field_by_elem_value(value)
+            else:
+                crm_field = query_crm_field_by_elem_value(value)
+            if not crm_field:
                 continue
+            field_name_unified = crm_field["field_name_unified"]
+            elem_id = crm_field["elem_id"]
+            equip_payload[field_name_unified] = elem_id
 
-            equip_payload[bitrix_field_name] = MarkType(value).value
             continue
+
+        # elif key == "equip_name":
+        #     bitrix_field_name = HouseEquipToEquip[key].value
+
+        #     if value not in MarkType.__members__:
+        #         continue
+
+        #     equip_payload[bitrix_field_name] = MarkType(value).value
+        #     continue
 
         #Разобраться, почему не работает
         # elif key == "type_cat_name":
@@ -58,10 +87,10 @@ def build_payload_equip(equip, house_equip):
         #     equip_payload[bitrix_field_name] = EquipType(value).value
         #     continue
 
-        elif key == "boil_setup_name":
-            bitrix_field_name = HouseEquipToEquip[key].value
-            equip_payload[bitrix_field_name] = BoilSetupType(value).value
-            continue
+        # elif key == "boil_setup_name":
+        #     bitrix_field_name = HouseEquipToEquip[key].value
+        #     equip_payload[bitrix_field_name] = BoilSetupType(value).value
+        #     continue
 
         elif key == "du":
             bitrix_field_name = HouseEquipToEquip[key + "1"].value
@@ -72,10 +101,10 @@ def build_payload_equip(equip, house_equip):
 
             continue
 
-        elif key == "pg":
-            bitrix_field_name = HouseEquipToEquip[key].value
-            equip_payload[bitrix_field_name] = StoveType(value).value
-            continue
+        # elif key == "pg":
+        #     bitrix_field_name = HouseEquipToEquip[key].value
+        #     equip_payload[bitrix_field_name] = StoveType(value).value
+        #     continue
 
 
         bitrix_field_name = HouseEquipToEquip[key].value
@@ -92,6 +121,11 @@ def sync_with_db_equip_endpoint(equip_id: int, house_equip_id: int):
 
     if not(equip and house_equip):
         raise HTTPException(status_code=400, detail="Equip not found") 
+    
+    # return {
+    #     "equip": equip,
+    #     "house_equip": house_equip
+    # }
 
     # Собираем payload оборудования для отправки в битрикс
     equip_payload = build_payload_equip(equip, house_equip)
