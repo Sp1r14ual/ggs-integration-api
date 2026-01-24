@@ -119,7 +119,7 @@ def build_payloads_object_ks_gs(house):
 
 
 @router.get("/house/{id}/object_ks/{contract_crm_id}")
-def sync_with_db_house_endpoint(id: int, contract_crm_id: Optional[int]) -> dict:
+def sync_with_db_house_endpoint(id: int, contract_crm_id: Optional[int] = None) -> dict:
     '''Эндпоинт для синхронизации битрикс-сущностей Объект КС и Этапы газификации с таблицей house'''
 
     # Получаем house из БД

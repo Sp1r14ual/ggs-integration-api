@@ -153,38 +153,51 @@ def build_payload_contract(contract):
     contract_payload = dict()
 
     for key, value in contract.items():
-        if key not in ContractToContract.__members__ and key not in ('date', 'contact_crm_id', 'company_crm_id'):
+        if key not in ContractToContract.__members__ and key not in ('type_contract_prefix', 'date', 'contact_crm_id', 'company_crm_id', 'type_contract_person_category_name'):
             continue
 
-        elif key == "type_contract_name":
-            if key not in ContractType.__members__:
-                continue
-
-            bitrix_field_name = ContractToContract[key].value
-            contract_payload[bitrix_field_name] = ContractType(value).value
-            continue
-
-        elif key == "type_contract_prefix":
-            if key not in ContractTypePrefix.__members__:
-                continue
-
-            bitrix_field_name = ContractToContract[key].value
-            contract_payload[bitrix_field_name] = ContractTypePrefix(value).value
-            continue
-
-        elif key == "type_contract_status_name":
-            bitrix_field_name = ContractToContract[key].value
-
-            if value in ("действует", "проект"):
-                contract_payload[bitrix_field_name] = ContractCurrentStatus("Действует").value
+        if key in ('type_contract_name', 'type_contract_prefix', 'type_contract_status_name', 'crm_category', 'type_contract_person_category_name'):
+            if key == 'type_contract_status_name':
+                crm_field = query_crm_field_by_elem_value(value.capitalize())
             else:
-                contract_payload[bitrix_field_name] = ContractCurrentStatus("Окончен").value
+                crm_field = query_crm_field_by_elem_value(value)
+            if not crm_field:
+                continue
+            field_name_unified = crm_field["field_name_unified"]
+            elem_id = crm_field["elem_id"]
+            contract_payload[field_name_unified] = elem_id
+
             continue
+
+        # elif key == "type_contract_name":
+        #     if key not in ContractType.__members__:
+        #         continue
+
+        #     bitrix_field_name = ContractToContract[key].value
+        #     contract_payload[bitrix_field_name] = ContractType(value).value
+        #     continue
+
+        # elif key == "type_contract_prefix":
+        #     if key not in ContractTypePrefix.__members__:
+        #         continue
+
+        #     bitrix_field_name = ContractToContract[key].value
+        #     contract_payload[bitrix_field_name] = ContractTypePrefix(value).value
+        #     continue
+
+        # elif key == "type_contract_status_name":
+        #     bitrix_field_name = ContractToContract[key].value
+
+        #     if value in ("действует", "проект"):
+        #         contract_payload[bitrix_field_name] = ContractCurrentStatus("Действует").value
+        #     else:
+        #         contract_payload[bitrix_field_name] = ContractCurrentStatus("Окончен").value
+        #     continue
     
-        elif key == "crm_category":
-            bitrix_field_name = ContractToContract[key].value
-            contract_payload[bitrix_field_name] = ContractCategory(value).value
-            continue
+        # elif key == "crm_category":
+        #     bitrix_field_name = ContractToContract[key].value
+        #     contract_payload[bitrix_field_name] = ContractCategory(value).value
+        #     continue
 
         # Несоответствие значений в БД и битриксе
         #   
@@ -218,7 +231,6 @@ def build_payload_contract(contract):
                 continue
 
         if key in ('contact_crm_id', 'company_crm_id'):
-            print("HERE")
             if key == "contact_crm_id" and value:
                 contract_payload["contactId"] = value
             elif key == "company_crm_id" and value:
